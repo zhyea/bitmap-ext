@@ -3,26 +3,29 @@ package org.chobit.bitmap;
 import java.io.*;
 
 /**
- * 对{@link org.roaringbitmap.RoaringBitmap}的封装。封装后的bitmap仍然只能设置整型值。
+ * 对{@link org.roaringbitmap.RoaringBitmap}的封装，主要用来作为ExtRoaringBitmap的子单元。
+ * <p>
+ * 封装后的bitmap仍然只能设置整型值。
  *
  * @author rui.zhang
  */
-public class RoaringBitmap implements IBitmap<RoaringBitmap> {
+public class RoaringUnit implements IBitmap<RoaringUnit> {
 
 
     private final org.roaringbitmap.RoaringBitmap bitmap;
+
     private long size = -1;
 
 
-    public RoaringBitmap() {
+    public RoaringUnit() {
         this(new org.roaringbitmap.RoaringBitmap(), 0);
     }
 
-    public RoaringBitmap(org.roaringbitmap.RoaringBitmap bitmap) {
+    public RoaringUnit(org.roaringbitmap.RoaringBitmap bitmap) {
         this(bitmap, bitmap.isEmpty() ? 0 : bitmap.last() + 1);
     }
 
-    public RoaringBitmap(org.roaringbitmap.RoaringBitmap bitmap, long size) {
+    public RoaringUnit(org.roaringbitmap.RoaringBitmap bitmap, long size) {
         this.bitmap = bitmap;
         this.size = size;
     }
@@ -61,32 +64,32 @@ public class RoaringBitmap implements IBitmap<RoaringBitmap> {
     }
 
     @Override
-    public RoaringBitmap and(RoaringBitmap other) {
-        return new RoaringBitmap(org.roaringbitmap.RoaringBitmap.and(this.bitmap, other.bitmap),
+    public RoaringUnit and(RoaringUnit other) {
+        return new RoaringUnit(org.roaringbitmap.RoaringBitmap.and(this.bitmap, other.bitmap),
                 Math.min(this.size, other.size));
     }
 
     @Override
-    public RoaringBitmap or(RoaringBitmap other) {
-        return new RoaringBitmap(org.roaringbitmap.RoaringBitmap.or(this.bitmap, other.bitmap),
+    public RoaringUnit or(RoaringUnit other) {
+        return new RoaringUnit(org.roaringbitmap.RoaringBitmap.or(this.bitmap, other.bitmap),
                 Math.max(this.size, other.size));
     }
 
     @Override
-    public RoaringBitmap xor(RoaringBitmap other) {
-        return new RoaringBitmap(org.roaringbitmap.RoaringBitmap.xor(this.bitmap, other.bitmap),
+    public RoaringUnit xor(RoaringUnit other) {
+        return new RoaringUnit(org.roaringbitmap.RoaringBitmap.xor(this.bitmap, other.bitmap),
                 Math.max(this.size, other.size));
     }
 
     @Override
-    public RoaringBitmap andNot(RoaringBitmap other) {
-        return new RoaringBitmap(org.roaringbitmap.RoaringBitmap.andNot(this.bitmap, other.bitmap),
+    public RoaringUnit andNot(RoaringUnit other) {
+        return new RoaringUnit(org.roaringbitmap.RoaringBitmap.andNot(this.bitmap, other.bitmap),
                 this.size);
     }
 
     @Override
-    public RoaringBitmap not() {
-        RoaringBitmap x = clone();
+    public RoaringUnit not() {
+        RoaringUnit x = clone();
         x.bitmap.flip(0, size);
         return x;
     }
@@ -126,7 +129,7 @@ public class RoaringBitmap implements IBitmap<RoaringBitmap> {
      *
      * @return 当前bitmap的最大size
      */
-    public int maxSize() {
+    public static int maxSize() {
         return Integer.MAX_VALUE;
     }
 
@@ -142,8 +145,8 @@ public class RoaringBitmap implements IBitmap<RoaringBitmap> {
     }
 
     @Override
-    public RoaringBitmap clone() {
-        return new RoaringBitmap(this.bitmap.clone(), this.size);
+    public RoaringUnit clone() {
+        return new RoaringUnit(this.bitmap.clone(), this.size);
     }
 
 
@@ -179,7 +182,7 @@ public class RoaringBitmap implements IBitmap<RoaringBitmap> {
     }
 
     @Override
-    public RoaringBitmap fromBytes(byte[] bytes) throws IOException {
+    public RoaringUnit fromBytes(byte[] bytes) throws IOException {
         deserialize(new DataInputStream(new ByteArrayInputStream(bytes)));
         return this;
     }

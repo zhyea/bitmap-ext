@@ -6,12 +6,18 @@ import java.util.List;
 import java.util.Objects;
 
 /**
+ * 抽象bitmap扩展类。
+ * <p>
+ * 封装了一系列bitmap扩展类的通用方法
+ *
+ * @param <T> bitmap扩展类的类型
+ * @param <U> bitmap扩展类的子bitmap单元的类型
  * @author rui.zhang
  */
 public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U extends IBitmap<U>> implements IBitmap<T> {
 
 
-    private final List<T> allUnits;
+    private final List<U> allUnits;
 
 
     protected AbstractExtBitmap() {
@@ -19,7 +25,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     }
 
 
-    protected AbstractExtBitmap(List<T> units) {
+    protected AbstractExtBitmap(List<U> units) {
         this.allUnits = units;
     }
 
@@ -31,8 +37,13 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     protected abstract long maxUnitSize();
 
 
-    @Override
-    public abstract T clone();
+    /**
+     * 根据子单元集合创建新的bitmap实例
+     *
+     * @param units bitmap子单元集合
+     * @return 新建的bitmap
+     */
+    protected abstract T combine(List<U> units);
 
 
     /**
@@ -40,7 +51,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
      *
      * @return 新的bitmap单元
      */
-    protected abstract T newUnit();
+    protected abstract U newUnit();
 
 
     @Override
@@ -112,6 +123,42 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
 
     @Override
+    public T and(T other) {
+        return combine(and0(other));
+    }
+
+
+    @Override
+    public T or(T another) {
+        return combine(or0(another));
+    }
+
+
+    @Override
+    public T xor(T another) {
+        return combine(xor0(another));
+    }
+
+
+    @Override
+    public T andNot(T another) {
+        return combine(andNot0(another));
+    }
+
+
+    @Override
+    public T not() {
+        return combine(not0());
+    }
+
+
+    @Override
+    public T clone() {
+        return combine(clone0());
+    }
+
+
+    @Override
     public long first() {
         for (int i = 0; i < unitsLength(); i++) {
             long firstInUnit = getUnit(i).first();
@@ -147,7 +194,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     @Override
     public long cardinality() {
         long c = 0L;
-        for (T u : allUnits) {
+        for (U u : allUnits) {
             c += u.cardinality();
         }
         return c;
@@ -173,7 +220,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     @Override
     public void serialize(DataOutput out) throws IOException {
         for (int i = 0; i < unitsLength(); i++) {
-            T u = getUnit(i);
+            U u = getUnit(i);
             u.serialize(out);
             if (i < unitsLength() - 1) {
                 out.writeByte(i);
@@ -186,7 +233,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     public void deserialize(DataInput in) throws IOException {
         boolean hasNext = true;
         while (hasNext) {
-            T u = newUnit();
+            U u = newUnit();
             u.deserialize(in);
             append(u);
             hasNext = in.readByte() != -1;
@@ -232,44 +279,44 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     }
 
 
-    protected List<T> and0(AbstractExtBitmap<T, U> o) {
+    private List<U> and0(AbstractExtBitmap<T, U> o) {
         int count = Math.min(this.unitsLength(), o.unitsLength());
-        List<T> andUnits = new ArrayList<>(count);
+        List<U> andUnits = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            T b1 = this.getUnit(i).clone();
-            T b2 = o.getUnit(i).clone();
+            U b1 = this.getUnit(i).clone();
+            U b2 = o.getUnit(i).clone();
             append(andUnits, b1.and(b2));
         }
         return andUnits;
     }
 
 
-    protected List<T> or0(AbstractExtBitmap<T, U> o) {
+    private List<U> or0(AbstractExtBitmap<T, U> o) {
         int count = Math.max(this.unitsLength(), o.unitsLength());
-        List<T> orUnits = new ArrayList<>(count);
+        List<U> orUnits = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            T b1 = i < this.unitsLength() ? this.getUnit(i).clone() : newUnit();
-            T b2 = i < o.unitsLength() ? o.getUnit(i).clone() : newUnit();
+            U b1 = i < this.unitsLength() ? this.getUnit(i).clone() : newUnit();
+            U b2 = i < o.unitsLength() ? o.getUnit(i).clone() : newUnit();
             append(orUnits, b1.or(b2));
         }
         return orUnits;
     }
 
 
-    protected List<T> xor0(AbstractExtBitmap<T, U> o) {
+    private List<U> xor0(AbstractExtBitmap<T, U> o) {
         int count = Math.max(this.unitsLength(), o.unitsLength());
-        List<T> xorUnits = new ArrayList<>(count);
+        List<U> xorUnits = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            T b1 = i < this.unitsLength() ? this.getUnit(i).clone() : newUnit();
-            T b2 = i < o.unitsLength() ? o.getUnit(i).clone() : newUnit();
+            U b1 = i < this.unitsLength() ? this.getUnit(i).clone() : newUnit();
+            U b2 = i < o.unitsLength() ? o.getUnit(i).clone() : newUnit();
             append(xorUnits, b1.xor(b2));
         }
         return xorUnits;
     }
 
 
-    protected List<T> andNot0(AbstractExtBitmap<T, U> o) {
-        List<T> andNotUnits = new ArrayList<>(this.unitsLength());
+    private List<U> andNot0(AbstractExtBitmap<T, U> o) {
+        List<U> andNotUnits = new ArrayList<>(this.unitsLength());
         for (int i = 0; i < andNotUnits.size(); i++) {
             if (i < o.unitsLength()) {
                 append(andNotUnits, this.getUnit(i).andNot(o.getUnit(i)));
@@ -281,25 +328,25 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     }
 
 
-    protected List<T> not0() {
-        List<T> notUnits = new ArrayList<>(this.unitsLength());
-        for (T unit : allUnits) {
+    private List<U> not0() {
+        List<U> notUnits = new ArrayList<>(this.unitsLength());
+        for (U unit : allUnits) {
             append(notUnits, unit.not());
         }
         return notUnits;
     }
 
 
-    protected List<T> clone0() {
-        List<T> cloneUnits = new ArrayList<>(this.unitsLength());
-        for (T unit : allUnits) {
+    protected List<U> clone0() {
+        List<U> cloneUnits = new ArrayList<>(this.unitsLength());
+        for (U unit : allUnits) {
             append(cloneUnits, unit.clone());
         }
         return cloneUnits;
     }
 
 
-    private T getUnit(int index) {
+    private U getUnit(int index) {
         return allUnits.get(index);
     }
 
@@ -316,12 +363,12 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     }
 
 
-    private void append(T bitmap) {
+    private void append(U bitmap) {
         append(allUnits, bitmap);
     }
 
 
-    private void append(List<T> bitmaps, T bitmap) {
+    private void append(List<U> bitmaps, U bitmap) {
         int i = unitsLength() - 1;
         while (i >= 0) {
             bitmaps.get(i).extend(maxUnitSize());
@@ -336,7 +383,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     }
 
 
-    protected void appendWithIndex(int index, T bitmap) {
+    protected void appendWithIndex(int index, U bitmap) {
         if (index > unitsLength()) {
             while (unitsLength() < index) {
                 append(newUnit());
