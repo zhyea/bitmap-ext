@@ -1,5 +1,7 @@
 package org.chobit.bitmap;
 
+import org.roaringbitmap.IntIterator;
+
 import java.io.*;
 
 /**
@@ -185,6 +187,43 @@ public class RoaringUnit implements IBitmap<RoaringUnit> {
     public RoaringUnit fromBytes(byte[] bytes) throws IOException {
         deserialize(new DataInputStream(new ByteArrayInputStream(bytes)));
         return this;
+    }
+
+    @Override
+    public LongIterator longIterator() {
+        return new LongIterator() {
+
+            private IntIterator itr = bitmap.getIntIterator();
+
+            @Override
+            public boolean hasNext() {
+                return itr.hasNext();
+            }
+
+            @Override
+            public long next() {
+                return itr.next();
+            }
+        };
+    }
+
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder(getClass().getSimpleName());
+        builder.append(":[");
+        IntIterator itr = bitmap.getIntIterator();
+        while (itr.hasNext()) {
+            if (builder.length() > 2) {
+                builder.append(",");
+            }
+            builder.append(itr.next());
+            if (builder.length() > 300 && itr.hasNext()) {
+                return builder.append("...]").toString();
+            }
+        }
+        builder.append("]");
+        return builder.toString();
     }
 
 

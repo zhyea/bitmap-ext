@@ -14,10 +14,11 @@ import java.util.Objects;
  * @param <U> bitmap扩展类的子bitmap单元的类型
  * @author rui.zhang
  */
-public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U extends IBitmap<U>> implements IBitmap<T> {
+public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U extends IBitmap<U>>
+        implements IBitmap<T> {
 
 
-    private final List<U> allUnits;
+    private final List<U> units;
 
 
     protected AbstractExtBitmap() {
@@ -26,7 +27,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
 
     protected AbstractExtBitmap(List<U> units) {
-        this.allUnits = units;
+        this.units = units;
     }
 
     /**
@@ -184,7 +185,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
     @Override
     public long size() {
-        if (allUnits.isEmpty()) {
+        if (units.isEmpty()) {
             return 0;
         }
         return (unitsLength() - 1) * maxUnitSize() + getUnit(unitsLength() - 1).size();
@@ -194,7 +195,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     @Override
     public long cardinality() {
         long c = 0L;
-        for (U u : allUnits) {
+        for (U u : units) {
             c += u.cardinality();
         }
         return c;
@@ -262,6 +263,14 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
 
     @Override
+    @SuppressWarnings("unchecked")
+    public T fromBytes(byte[] bytes) throws IOException {
+        deserialize(new DataInputStream(new ByteArrayInputStream(bytes)));
+        return (T) this;
+    }
+
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -270,12 +279,65 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
             return false;
         }
         AbstractExtBitmap<T, U> that = (AbstractExtBitmap<T, U>) o;
-        return Objects.equals(allUnits, that.allUnits);
+        return Objects.equals(units, that.units);
     }
+
 
     @Override
     public int hashCode() {
-        return Objects.hash(allUnits);
+        return Objects.hash(units);
+    }
+
+
+    @Override
+    public LongIterator longIterator() {
+        return new LongIterator() {
+
+            private int index = 0;
+            private LongIterator itr;
+
+            @Override
+            public boolean hasNext() {
+                while (true) {
+                    if (index >= units.size()) {
+                        return false;
+                    }
+                    if (itr == null) {
+                        itr = units.get(index).longIterator();
+                    }
+                    if (itr.hasNext()) {
+                        return true;
+                    } else {
+                        itr = null;
+                        index++;
+                    }
+                }
+            }
+
+            @Override
+            public long next() {
+                return itr.next() + index * maxUnitSize();
+            }
+        };
+    }
+
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder(getClass().getSimpleName());
+        builder.append("[");
+        LongIterator itr = longIterator();
+        while (itr.hasNext()) {
+            if (builder.length() > 2) {
+                builder.append(",");
+            }
+            builder.append(itr.next());
+            if (builder.length() > 300 && itr.hasNext()) {
+                return builder.append("...]").toString();
+            }
+        }
+        builder.append("]");
+        return builder.toString();
     }
 
 
@@ -330,7 +392,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
     private List<U> not0() {
         List<U> notUnits = new ArrayList<>(this.unitsLength());
-        for (U unit : allUnits) {
+        for (U unit : units) {
             append(notUnits, unit.not());
         }
         return notUnits;
@@ -339,7 +401,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
     protected List<U> clone0() {
         List<U> cloneUnits = new ArrayList<>(this.unitsLength());
-        for (U unit : allUnits) {
+        for (U unit : units) {
             append(cloneUnits, unit.clone());
         }
         return cloneUnits;
@@ -347,7 +409,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
 
     private U getUnit(int index) {
-        return allUnits.get(index);
+        return units.get(index);
     }
 
 
@@ -364,7 +426,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
 
     private void append(U bitmap) {
-        append(allUnits, bitmap);
+        append(units, bitmap);
     }
 
 
@@ -379,7 +441,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
 
     protected int unitsLength() {
-        return allUnits.size();
+        return units.size();
     }
 
 
@@ -388,11 +450,11 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
             while (unitsLength() < index) {
                 append(newUnit());
             }
-            allUnits.add(bitmap);
+            units.add(bitmap);
         } else if (0 == bitmap.size()) {
-            allUnits.add(bitmap);
+            units.add(bitmap);
         } else {
-            allUnits.set(index, bitmap);
+            units.set(index, bitmap);
         }
     }
 

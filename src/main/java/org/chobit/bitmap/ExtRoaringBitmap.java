@@ -1,8 +1,5 @@
 package org.chobit.bitmap;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -10,9 +7,11 @@ import java.util.List;
  */
 public class ExtRoaringBitmap extends AbstractExtBitmap<ExtRoaringBitmap, RoaringUnit> {
 
+
     public ExtRoaringBitmap() {
         super();
     }
+
 
     private ExtRoaringBitmap(List<RoaringUnit> units) {
         super(units);
@@ -32,12 +31,6 @@ public class ExtRoaringBitmap extends AbstractExtBitmap<ExtRoaringBitmap, Roarin
     @Override
     protected RoaringUnit newUnit() {
         return new RoaringUnit();
-    }
-
-    @Override
-    public ExtRoaringBitmap fromBytes(byte[] bytes) throws IOException {
-        super.deserialize(new DataInputStream(new ByteArrayInputStream(bytes)));
-        return this;
     }
 
 

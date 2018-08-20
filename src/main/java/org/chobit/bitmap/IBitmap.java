@@ -183,4 +183,11 @@ public interface IBitmap<T extends IBitmap<T>> extends Externalizable {
      */
     T fromBytes(byte[] bytes) throws IOException;
 
+
+    /**
+     * bitmap元素iterator
+     *
+     * @return bitmap元素iterator
+     */
+    LongIterator longIterator();
 }
