@@ -11,7 +11,7 @@ import java.util.Objects;
  * 封装了一系列bitmap扩展类的通用方法
  *
  * @param <T> bitmap扩展类的类型
- * @param <U> bitmap扩展类的子bitmap单元的类型
+ * @param <U> bitmap扩展类子bitmap单元的类型
  * @author rui.zhang
  */
 public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U extends IBitmap<U>>
