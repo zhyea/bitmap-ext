@@ -10,8 +10,8 @@ import java.util.Objects;
  * <p>
  * 封装了一系列bitmap扩展类的通用方法
  *
- * @param <T> bitmap扩展类的类型
- * @param <U> bitmap扩展类子bitmap单元的类型
+ * @param <T> bitmap扩展类的类型，主要用于计算
+ * @param <U> bitmap扩展类子bitmap单元的类型，主要用于增删元素
  * @author rui.zhang
  */
 public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U extends IBitmap<U>>
@@ -84,7 +84,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
         }
         checkOffset(rangeEnd);
         long maxIndex = rangeEnd / maxUnitSize();
-        while (unitsLength() < maxIndex) {
+        while (unitsLength() <= maxIndex) {
             appendNewUnit();
         }
 
@@ -154,7 +154,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
 
     @Override
-    public T clone() {
+    public T copy() {
         return combine(clone0());
     }
 
@@ -324,7 +324,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder(getClass().getSimpleName());
+        StringBuilder builder = new StringBuilder();
         builder.append("[");
         LongIterator itr = longIterator();
         while (itr.hasNext()) {
@@ -337,6 +337,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
             }
         }
         builder.append("]");
+        builder.insert(0, getClass().getSimpleName());
         return builder.toString();
     }
 
@@ -345,8 +346,8 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
         int count = Math.min(this.unitsLength(), o.unitsLength());
         List<U> andUnits = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            U b1 = this.getUnit(i).clone();
-            U b2 = o.getUnit(i).clone();
+            U b1 = this.getUnit(i).copy();
+            U b2 = o.getUnit(i).copy();
             append(andUnits, b1.and(b2));
         }
         return andUnits;
@@ -357,8 +358,8 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
         int count = Math.max(this.unitsLength(), o.unitsLength());
         List<U> orUnits = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            U b1 = i < this.unitsLength() ? this.getUnit(i).clone() : newUnit();
-            U b2 = i < o.unitsLength() ? o.getUnit(i).clone() : newUnit();
+            U b1 = i < this.unitsLength() ? this.getUnit(i).copy() : newUnit();
+            U b2 = i < o.unitsLength() ? o.getUnit(i).copy() : newUnit();
             append(orUnits, b1.or(b2));
         }
         return orUnits;
@@ -369,8 +370,8 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
         int count = Math.max(this.unitsLength(), o.unitsLength());
         List<U> xorUnits = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            U b1 = i < this.unitsLength() ? this.getUnit(i).clone() : newUnit();
-            U b2 = i < o.unitsLength() ? o.getUnit(i).clone() : newUnit();
+            U b1 = i < this.unitsLength() ? this.getUnit(i).copy() : newUnit();
+            U b2 = i < o.unitsLength() ? o.getUnit(i).copy() : newUnit();
             append(xorUnits, b1.xor(b2));
         }
         return xorUnits;
@@ -383,7 +384,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
             if (i < o.unitsLength()) {
                 append(andNotUnits, this.getUnit(i).andNot(o.getUnit(i)));
             } else {
-                append(andNotUnits, this.getUnit(i).clone());
+                append(andNotUnits, this.getUnit(i).copy());
             }
         }
         return andNotUnits;
@@ -402,7 +403,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     protected List<U> clone0() {
         List<U> cloneUnits = new ArrayList<>(this.unitsLength());
         for (U unit : units) {
-            append(cloneUnits, unit.clone());
+            append(cloneUnits, unit.copy());
         }
         return cloneUnits;
     }

@@ -91,7 +91,7 @@ public class RoaringUnit implements IBitmap<RoaringUnit> {
 
     @Override
     public RoaringUnit not() {
-        RoaringUnit x = clone();
+        RoaringUnit x = copy();
         x.bitmap.flip(0, size);
         return x;
     }
@@ -147,7 +147,7 @@ public class RoaringUnit implements IBitmap<RoaringUnit> {
     }
 
     @Override
-    public RoaringUnit clone() {
+    public RoaringUnit copy() {
         return new RoaringUnit(this.bitmap.clone(), this.size);
     }
 

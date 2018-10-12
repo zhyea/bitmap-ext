@@ -6,8 +6,10 @@ import java.io.Externalizable;
 import java.io.IOException;
 
 /**
+ *
  * Bitmap接口
  *
+ * @param <T> IBitmap的实现
  * @author rui.zhang
  */
 public interface IBitmap<T extends IBitmap<T>> extends Externalizable {
@@ -144,7 +146,7 @@ public interface IBitmap<T extends IBitmap<T>> extends Externalizable {
      *
      * @return 当前bitmap的完全拷贝
      */
-    T clone();
+    T copy();
 
 
     /**
