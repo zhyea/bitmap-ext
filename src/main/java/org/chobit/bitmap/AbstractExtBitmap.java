@@ -90,8 +90,8 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
         long tmpIndex = rangeStart / maxUnitSize();
         while (tmpIndex <= maxIndex) {
-            long start = Math.max(tmpIndex * maxUnitSize(), rangeStart);
-            long end = Math.min((tmpIndex + 1) * maxUnitSize(), rangeEnd);
+            long start = Math.max(0, rangeStart - tmpIndex * maxUnitSize());
+            long end = Math.min(maxUnitSize(), rangeEnd - tmpIndex * maxUnitSize());
             getUnit((int) tmpIndex).add(start, end);
             tmpIndex++;
         }
@@ -106,10 +106,10 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
         checkOffset(rangeEnd);
 
         long tmpIndex = rangeStart / maxUnitSize();
-        while (tmpIndex <= unitsLength()) {
-            long start = Math.max(tmpIndex * maxUnitSize(), rangeStart);
-            long end = Math.min((tmpIndex + 1) * maxUnitSize(), rangeEnd);
-            getUnit((int) tmpIndex).add(start, end);
+        while (tmpIndex < unitsLength()) {
+            long start = Math.max(0, rangeStart - tmpIndex * maxUnitSize());
+            long end = Math.min(maxUnitSize(), rangeEnd - tmpIndex * maxUnitSize());
+            getUnit((int) tmpIndex).remove(start, end);
             tmpIndex++;
         }
     }
