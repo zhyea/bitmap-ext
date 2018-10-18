@@ -3,7 +3,7 @@ package org.chobit.bitmap;
 import java.util.List;
 
 /**
- * @author rui.zhang
+ * @author robin
  */
 public class ExtRoaringBitmap extends AbstractExtBitmap<ExtRoaringBitmap, RoaringUnit> {
 

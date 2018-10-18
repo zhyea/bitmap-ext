@@ -9,7 +9,7 @@ import java.io.*;
  * <p>
  * 封装后的bitmap仍然只能设置整型值。
  *
- * @author rui.zhang
+ * @author robin
  */
 public class RoaringUnit implements IBitmap<RoaringUnit> {
 

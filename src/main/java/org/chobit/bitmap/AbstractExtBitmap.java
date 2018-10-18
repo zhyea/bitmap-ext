@@ -12,7 +12,7 @@ import java.util.Objects;
  *
  * @param <T> bitmap扩展类的类型，主要用于计算
  * @param <U> bitmap扩展类子bitmap单元的类型，主要用于增删元素
- * @author rui.zhang
+ * @author robin
  */
 public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U extends IBitmap<U>>
         implements IBitmap<T> {
@@ -432,7 +432,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
 
     private void append(List<U> bitmaps, U bitmap) {
-        int i = unitsLength() - 1;
+        int i = bitmaps.size() - 1;
         while (i >= 0) {
             bitmaps.get(i).extend(maxUnitSize());
             i--;

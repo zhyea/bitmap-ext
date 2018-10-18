@@ -3,7 +3,7 @@ package org.chobit.bitmap;
 /**
  * 用来遍历bitmap数值的iterator
  *
- * @author rui.zhang
+ * @author robin
  */
 public interface LongIterator {
 

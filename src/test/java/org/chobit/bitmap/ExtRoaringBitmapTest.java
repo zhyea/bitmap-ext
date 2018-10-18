@@ -4,7 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author rui.zhang
+ * @author robin
  */
 public class ExtRoaringBitmapTest {
 
@@ -77,12 +77,64 @@ public class ExtRoaringBitmapTest {
         ExtRoaringBitmap b2 = new ExtRoaringBitmap();
 
         b1.add(value, value + 10);
+        System.out.println(b1);
         b2.add(value - 2, value + 2);
+        System.out.println(b2);
         ExtRoaringBitmap b3 = b1.and(b2);
         System.out.println(b3);
 
-        Assert.assertEquals(3, b3.cardinality());
+        Assert.assertEquals(2, b3.cardinality());
     }
 
+
+    @Test
+    public void or() {
+        long value = 1024001002302L;
+        ExtRoaringBitmap b1 = new ExtRoaringBitmap();
+        ExtRoaringBitmap b2 = new ExtRoaringBitmap();
+
+        b1.add(value, value + 10);
+        System.out.println(b1);
+        b2.add(value - 2, value + 2);
+        System.out.println(b2);
+        ExtRoaringBitmap b3 = b1.or(b2);
+        System.out.println(b3);
+
+        Assert.assertEquals(12, b3.cardinality());
+    }
+
+
+    @Test
+    public void xor() {
+        long value = 1024001002302L;
+        ExtRoaringBitmap b1 = new ExtRoaringBitmap();
+        ExtRoaringBitmap b2 = new ExtRoaringBitmap();
+
+        b1.add(value, value + 10);
+        System.out.println(b1);
+        b2.add(value - 2, value + 2);
+        System.out.println(b2);
+        ExtRoaringBitmap b3 = b1.xor(b2);
+        System.out.println(b3);
+
+        Assert.assertEquals(10, b3.cardinality());
+    }
+
+
+    @Test
+    public void andNot() {
+        long value = 1024001002302L;
+        ExtRoaringBitmap b1 = new ExtRoaringBitmap();
+        ExtRoaringBitmap b2 = new ExtRoaringBitmap();
+
+        b1.add(value, value + 10);
+        System.out.println(b1);
+        b2.add(value - 2, value + 2);
+        System.out.println(b2);
+        ExtRoaringBitmap b3 = b1.andNot(b2);
+        System.out.println(b3);
+
+        Assert.assertEquals(8, b3.cardinality());
+    }
 
 }

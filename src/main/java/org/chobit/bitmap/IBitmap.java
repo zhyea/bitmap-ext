@@ -10,7 +10,7 @@ import java.io.IOException;
  * Bitmap接口
  *
  * @param <T> IBitmap的实现
- * @author rui.zhang
+ * @author robin
  */
 public interface IBitmap<T extends IBitmap<T>> extends Externalizable {
 
