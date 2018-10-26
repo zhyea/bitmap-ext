@@ -133,8 +133,53 @@ public class ExtRoaringBitmapTest {
         System.out.println(b2);
         ExtRoaringBitmap b3 = b1.andNot(b2);
         System.out.println(b3);
+        System.out.println(b1);
 
         Assert.assertEquals(8, b3.cardinality());
     }
 
+
+    @Test
+    public void first() {
+        long value = 1024001002302L;
+        ExtRoaringBitmap b1 = new ExtRoaringBitmap();
+        b1.add(value, value + 10);
+        Assert.assertEquals(value, b1.first());
+    }
+
+
+    @Test
+    public void last() {
+        long value = 1024001002302L;
+        ExtRoaringBitmap b1 = new ExtRoaringBitmap();
+        b1.add(value, value + 10);
+        Assert.assertEquals(value + 10 - 1, b1.last());
+    }
+
+
+    public void size() {
+
+    }
+
+
+    public void cardinality() {
+
+    }
+
+
+    public void extend() {
+
+    }
+
+
+    public void copy() {
+    }
+
+
+    public void serializeAndDeserialize() {
+    }
+
+
+    public void toANdFromBytes() {
+    }
 }

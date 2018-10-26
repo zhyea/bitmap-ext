@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 /**
  * 抽象bitmap扩展类。
@@ -342,45 +343,38 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     }
 
 
-    private List<U> and0(AbstractExtBitmap<T, U> o) {
-        int count = Math.min(this.unitsLength(), o.unitsLength());
-        List<U> andUnits = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            U b1 = this.getUnit(i).copy();
-            U b2 = o.getUnit(i).copy();
-            append(andUnits, b1.and(b2));
+    private List<U> compute(int unitsLength, AbstractExtBitmap<T, U> o, BiFunction<U, U, U> func) {
+        List<U> resultUnits = new ArrayList<>(unitsLength);
+        for (int i = 0; i < unitsLength; i++) {
+            U b1 = i < this.unitsLength() ? this.getUnit(i).copy() : newUnit();
+            U b2 = i < o.unitsLength() ? o.getUnit(i).copy() : newUnit();
+            append(resultUnits, func.apply(b1, b2));
         }
-        return andUnits;
+        return resultUnits;
+    }
+
+    private List<U> and0(AbstractExtBitmap<T, U> o) {
+        int length = Math.min(this.unitsLength(), o.unitsLength());
+        return compute(length, o, IBitmap::and);
     }
 
 
     private List<U> or0(AbstractExtBitmap<T, U> o) {
-        int count = Math.max(this.unitsLength(), o.unitsLength());
-        List<U> orUnits = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            U b1 = i < this.unitsLength() ? this.getUnit(i).copy() : newUnit();
-            U b2 = i < o.unitsLength() ? o.getUnit(i).copy() : newUnit();
-            append(orUnits, b1.or(b2));
-        }
-        return orUnits;
+        int length = Math.max(this.unitsLength(), o.unitsLength());
+        return compute(length, o, IBitmap::or);
     }
 
 
     private List<U> xor0(AbstractExtBitmap<T, U> o) {
-        int count = Math.max(this.unitsLength(), o.unitsLength());
-        List<U> xorUnits = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            U b1 = i < this.unitsLength() ? this.getUnit(i).copy() : newUnit();
-            U b2 = i < o.unitsLength() ? o.getUnit(i).copy() : newUnit();
-            append(xorUnits, b1.xor(b2));
-        }
-        return xorUnits;
+        int length = Math.max(this.unitsLength(), o.unitsLength());
+        return compute(length, o, IBitmap::xor);
     }
 
 
     private List<U> andNot0(AbstractExtBitmap<T, U> o) {
-        List<U> andNotUnits = new ArrayList<>(this.unitsLength());
-        for (int i = 0; i < andNotUnits.size(); i++) {
+        int length = this.unitsLength();
+        List<U> andNotUnits = new ArrayList<>(length);
+        for (int i = 0; i < length; i++) {
             if (i < o.unitsLength()) {
                 append(andNotUnits, this.getUnit(i).andNot(o.getUnit(i)));
             } else {

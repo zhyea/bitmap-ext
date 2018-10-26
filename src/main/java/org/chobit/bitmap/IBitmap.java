@@ -94,7 +94,7 @@ public interface IBitmap<T extends IBitmap<T>> extends Externalizable {
 
 
     /**
-     * 当前bitmap做not运算后的结果
+     * 当前bitmap做not运算后的结果。谨慎使用。
      *
      * @return not运算后的结果
      */
