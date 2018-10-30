@@ -81,7 +81,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     @Override
     public void add(final long rangeStart, final long rangeEnd) {
         if (rangeStart >= rangeEnd) {
-            return;
+            throw new IllegalArgumentException("Range start:[" + rangeStart + "] is greater than end:[" + rangeEnd + "].");
         }
         checkOffset(rangeEnd);
         long maxIndex = rangeEnd / maxUnitSize();

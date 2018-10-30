@@ -117,7 +117,7 @@ public class RoaringUnit implements IBitmap<RoaringUnit> {
         if (this.size < 0) {
             this.size = this.bitmap.last() + 1;
         }
-        return 0;
+        return size;
     }
 
     @Override
