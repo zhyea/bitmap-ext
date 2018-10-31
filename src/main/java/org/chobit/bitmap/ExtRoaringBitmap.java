@@ -34,23 +34,4 @@ public class ExtRoaringBitmap extends AbstractExtBitmap<ExtRoaringBitmap, Roarin
     }
 
 
-    /**
-     * 将一个bitmap子单元强行添加到bitmap子单元中
-     * <p>
-     * 慎用该方法
-     *
-     * @param index 子单元要添加到的位置索引
-     * @param unit  bitmap子单元
-     * @return bitmap子单元
-     */
-    public ExtRoaringBitmap appendForce(int index, RoaringUnit unit) {
-        if (index < 0) {
-            throw new IllegalArgumentException("Index cannot be less than zero.");
-        }
-        if (null == unit) {
-            throw new IllegalArgumentException("Bitmap to be appended cannot be null.");
-        }
-        super.appendWithIndex(index, unit);
-        return this;
-    }
 }

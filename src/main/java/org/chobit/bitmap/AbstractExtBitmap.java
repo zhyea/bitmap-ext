@@ -126,37 +126,44 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
     @Override
     public T and(T other) {
-        return combine(and0(other));
+        int length = Math.min(this.unitsLength(), other.unitsLength());
+        return compute(length, other, IBitmap::and);
     }
 
 
     @Override
-    public T or(T another) {
-        return combine(or0(another));
+    public T or(T other) {
+        int length = Math.max(this.unitsLength(), other.unitsLength());
+        return compute(length, other, IBitmap::or);
     }
 
 
     @Override
-    public T xor(T another) {
-        return combine(xor0(another));
+    public T xor(T other) {
+        int length = Math.max(this.unitsLength(), other.unitsLength());
+        return compute(length, other, IBitmap::xor);
     }
 
 
     @Override
     public T andNot(T another) {
-        return combine(andNot0(another));
+        return andNot0(another);
     }
 
 
     @Override
     public T not() {
-        return combine(not0());
+        List<U> notUnits = new ArrayList<>(this.unitsLength());
+        for (U unit : units) {
+            append(notUnits, unit.not());
+        }
+        return combine(notUnits);
     }
 
 
     @Override
     public T copy() {
-        return combine(clone0());
+        return combine(copy0());
     }
 
 
@@ -224,9 +231,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
         for (int i = 0; i < unitsLength(); i++) {
             U u = getUnit(i);
             u.serialize(out);
-            if (i < unitsLength() - 1) {
-                out.writeByte(i);
-            }
+            out.writeInt(i);
         }
     }
 
@@ -238,7 +243,8 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
             U u = newUnit();
             u.deserialize(in);
             append(u);
-            hasNext = in.readByte() != -1;
+            int index = in.readInt();
+            hasNext = index > 0;
         }
     }
 
@@ -343,65 +349,85 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     }
 
 
-    private List<U> compute(int unitsLength, AbstractExtBitmap<T, U> o, BiFunction<U, U, U> func) {
+    public T andAtIndex(int index, U unit) {
+        checkIndex(index);
+        if (this.unitsLength() < index + 1) {
+            return copy();
+        }
+        List<U> list = copy0();
+        U childUnit = list.get(index);
+        list.set(index, childUnit.and(unit));
+        return combine(list);
+    }
+
+
+    public T orAtIndex(int index, U unit) {
+        checkIndex(index);
+        List<U> list = copy0();
+        if (list.size() < index + 1) {
+            append(list, newUnit());
+        }
+        U childUnit = list.get(index);
+        list.set(index, childUnit.or(unit));
+        return combine(list);
+    }
+
+
+    public T xorAtIndex(int index, U unit) {
+        checkIndex(index);
+        List<U> list = copy0();
+        if (list.size() < index + 1) {
+            append(list, newUnit());
+        }
+        U childUnit = list.get(index);
+        list.set(index, childUnit.xor(unit));
+        return combine(list);
+    }
+
+
+    public T andNotAtIndex(int index, U unit) {
+        checkIndex(index);
+        if (this.unitsLength() < index + 1) {
+            return copy();
+        }
+        List<U> list = copy0();
+        U childUnit = list.get(index);
+        list.set(index, childUnit.andNot(unit));
+        return combine(list);
+    }
+
+    private T compute(int unitsLength, AbstractExtBitmap<T, U> o, BiFunction<U, U, U> func) {
         List<U> resultUnits = new ArrayList<>(unitsLength);
         for (int i = 0; i < unitsLength; i++) {
             U b1 = i < this.unitsLength() ? this.getUnit(i).copy() : newUnit();
             U b2 = i < o.unitsLength() ? o.getUnit(i).copy() : newUnit();
             append(resultUnits, func.apply(b1, b2));
         }
-        return resultUnits;
-    }
-
-    private List<U> and0(AbstractExtBitmap<T, U> o) {
-        int length = Math.min(this.unitsLength(), o.unitsLength());
-        return compute(length, o, IBitmap::and);
+        return combine(resultUnits);
     }
 
 
-    private List<U> or0(AbstractExtBitmap<T, U> o) {
-        int length = Math.max(this.unitsLength(), o.unitsLength());
-        return compute(length, o, IBitmap::or);
-    }
-
-
-    private List<U> xor0(AbstractExtBitmap<T, U> o) {
-        int length = Math.max(this.unitsLength(), o.unitsLength());
-        return compute(length, o, IBitmap::xor);
-    }
-
-
-    private List<U> andNot0(AbstractExtBitmap<T, U> o) {
+    private T andNot0(AbstractExtBitmap<T, U> other) {
         int length = this.unitsLength();
         List<U> andNotUnits = new ArrayList<>(length);
         for (int i = 0; i < length; i++) {
-            if (i < o.unitsLength()) {
-                append(andNotUnits, this.getUnit(i).andNot(o.getUnit(i)));
+            if (i < other.unitsLength()) {
+                append(andNotUnits, this.getUnit(i).andNot(other.getUnit(i)));
             } else {
                 append(andNotUnits, this.getUnit(i).copy());
             }
         }
-        return andNotUnits;
+        return combine(andNotUnits);
     }
 
 
-    private List<U> not0() {
-        List<U> notUnits = new ArrayList<>(this.unitsLength());
+    private List<U> copy0() {
+        List<U> copyUnits = new ArrayList<>(this.unitsLength());
         for (U unit : units) {
-            append(notUnits, unit.not());
+            append(copyUnits, unit.copy());
         }
-        return notUnits;
+        return units;
     }
-
-
-    protected List<U> clone0() {
-        List<U> cloneUnits = new ArrayList<>(this.unitsLength());
-        for (U unit : units) {
-            append(cloneUnits, unit.copy());
-        }
-        return cloneUnits;
-    }
-
 
     private U getUnit(int index) {
         return units.get(index);
@@ -411,6 +437,13 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     private void checkOffset(long offset) {
         if (offset >= maxUnitSize() * Integer.MAX_VALUE) {
             throw new IllegalArgumentException(String.format("Offset must be less than (%d * Integer.MAX_VALUE). Your offset is %d.", maxUnitSize(), offset));
+        }
+    }
+
+
+    private void checkIndex(int index) {
+        if (index < 0) {
+            throw new IllegalArgumentException("Index of unit bitmap cannot be less than zero. Your index is " + index);
         }
     }
 
@@ -437,20 +470,6 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
     protected int unitsLength() {
         return units.size();
-    }
-
-
-    protected void appendWithIndex(int index, U bitmap) {
-        if (index > unitsLength()) {
-            while (unitsLength() < index) {
-                append(newUnit());
-            }
-            units.add(bitmap);
-        } else if (0 == bitmap.size()) {
-            units.add(bitmap);
-        } else {
-            units.set(index, bitmap);
-        }
     }
 
 }
