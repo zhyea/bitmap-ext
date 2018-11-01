@@ -23,7 +23,7 @@ public class ExtRoaringBitmapTest {
         ExtRoaringBitmap bitmap = new ExtRoaringBitmap();
         bitmap.add(20L);
         System.out.println(bitmap);
-        Assert.assertTrue(1 == bitmap.cardinality());
+        Assert.assertEquals(1, bitmap.cardinality());
     }
 
 
@@ -191,8 +191,11 @@ public class ExtRoaringBitmapTest {
     public void copy() {
         ExtRoaringBitmap bitmap = new ExtRoaringBitmap();
         bitmap.add(1L, 6L);
+        System.out.println(bitmap);
         ExtRoaringBitmap bitmap2 = bitmap.copy();
+
         bitmap2.add(12L);
+
         Assert.assertEquals(5, bitmap.cardinality());
         Assert.assertEquals(6, bitmap2.cardinality());
     }
@@ -231,6 +234,95 @@ public class ExtRoaringBitmapTest {
         Assert.assertEquals(5, b2.cardinality());
     }
 
+
+    @Test
+    public void andWithIndex() {
+        ExtRoaringBitmap b1 = new ExtRoaringBitmap();
+        b1.add(1L);
+        b1.add(3L);
+        b1.add(7L);
+        b1.add(RoaringUnit.maxSize() + 1L);
+        b1.add(RoaringUnit.maxSize() + 3L);
+
+        System.out.println(b1);
+
+        RoaringUnit unit = new RoaringUnit();
+        unit.add(2L);
+        unit.add(3L);
+
+        ExtRoaringBitmap b2 = b1.andWithIndex(1, unit);
+
+        Assert.assertEquals(4, b2.cardinality());
+        System.out.println(b2);
+    }
+
+    @Test
+    public void orWithIndex() {
+        ExtRoaringBitmap b1 = new ExtRoaringBitmap();
+        b1.add(1L);
+        b1.add(3L);
+        b1.add(7L);
+        b1.add(RoaringUnit.maxSize() + 1L);
+        b1.add(RoaringUnit.maxSize() + 3L);
+
+        System.out.println(b1);
+
+        RoaringUnit unit = new RoaringUnit();
+        unit.add(2L);
+        unit.add(3L);
+        unit.add(5L);
+
+        ExtRoaringBitmap b2 = b1.orWithIndex(1, unit);
+
+        Assert.assertEquals(7, b2.cardinality());
+        System.out.println(b2);
+    }
+
+
+    @Test
+    public void xorWithIndex() {
+        ExtRoaringBitmap b1 = new ExtRoaringBitmap();
+        b1.add(1L);
+        b1.add(3L);
+        b1.add(7L);
+        b1.add(RoaringUnit.maxSize() + 1L);
+        b1.add(RoaringUnit.maxSize() + 3L);
+
+        System.out.println(b1);
+
+        RoaringUnit unit = new RoaringUnit();
+        unit.add(2L);
+        unit.add(3L);
+        unit.add(5L);
+
+        ExtRoaringBitmap b2 = b1.xorWithIndex(1, unit);
+
+        Assert.assertEquals(6, b2.cardinality());
+        System.out.println(b2);
+    }
+
+
+    @Test
+    public void andNotWithIndex() {
+        ExtRoaringBitmap b1 = new ExtRoaringBitmap();
+        b1.add(1L);
+        b1.add(3L);
+        b1.add(7L);
+        b1.add(RoaringUnit.maxSize() + 2L);
+        b1.add(RoaringUnit.maxSize() + 3L);
+
+        System.out.println(b1);
+
+        RoaringUnit unit = new RoaringUnit();
+        unit.add(2L);
+        unit.add(3L);
+        unit.add(5L);
+
+        ExtRoaringBitmap b2 = b1.andNotWithIndex(1, unit);
+
+        Assert.assertEquals(3, b2.cardinality());
+        System.out.println(b2);
+    }
 
 
     @Test

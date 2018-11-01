@@ -278,6 +278,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
 
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -335,7 +336,7 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
         builder.append("[");
         LongIterator itr = longIterator();
         while (itr.hasNext()) {
-            if (builder.length() > 2) {
+            if (builder.length() > 1) {
                 builder.append(",");
             }
             builder.append(itr.next());
@@ -346,64 +347,6 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
         builder.append("]");
         builder.insert(0, getClass().getSimpleName());
         return builder.toString();
-    }
-
-
-    public T andAtIndex(int index, U unit) {
-        checkIndex(index);
-        if (this.unitsLength() < index + 1) {
-            return copy();
-        }
-        List<U> list = copy0();
-        U childUnit = list.get(index);
-        list.set(index, childUnit.and(unit));
-        return combine(list);
-    }
-
-
-    public T orAtIndex(int index, U unit) {
-        checkIndex(index);
-        List<U> list = copy0();
-        if (list.size() < index + 1) {
-            append(list, newUnit());
-        }
-        U childUnit = list.get(index);
-        list.set(index, childUnit.or(unit));
-        return combine(list);
-    }
-
-
-    public T xorAtIndex(int index, U unit) {
-        checkIndex(index);
-        List<U> list = copy0();
-        if (list.size() < index + 1) {
-            append(list, newUnit());
-        }
-        U childUnit = list.get(index);
-        list.set(index, childUnit.xor(unit));
-        return combine(list);
-    }
-
-
-    public T andNotAtIndex(int index, U unit) {
-        checkIndex(index);
-        if (this.unitsLength() < index + 1) {
-            return copy();
-        }
-        List<U> list = copy0();
-        U childUnit = list.get(index);
-        list.set(index, childUnit.andNot(unit));
-        return combine(list);
-    }
-
-    private T compute(int unitsLength, AbstractExtBitmap<T, U> o, BiFunction<U, U, U> func) {
-        List<U> resultUnits = new ArrayList<>(unitsLength);
-        for (int i = 0; i < unitsLength; i++) {
-            U b1 = i < this.unitsLength() ? this.getUnit(i).copy() : newUnit();
-            U b2 = i < o.unitsLength() ? o.getUnit(i).copy() : newUnit();
-            append(resultUnits, func.apply(b1, b2));
-        }
-        return combine(resultUnits);
     }
 
 
@@ -421,12 +364,67 @@ public abstract class AbstractExtBitmap<T extends AbstractExtBitmap<T, U>, U ext
     }
 
 
+    public T andWithIndex(int index, U unit) {
+        return computeWithIndex(index, false, unit, IBitmap::and);
+    }
+
+
+    public T orWithIndex(int index, U unit) {
+        return computeWithIndex(index, true, unit, IBitmap::or);
+    }
+
+
+    public T xorWithIndex(int index, U unit) {
+        return computeWithIndex(index, true, unit, IBitmap::xor);
+    }
+
+
+    public T andNotWithIndex(int index, U unit) {
+        return computeWithIndex(index, false, unit, IBitmap::andNot);
+    }
+
+
+    private T compute(int unitsLength, AbstractExtBitmap<T, U> o, BiFunction<U, U, U> func) {
+        List<U> resultUnits = new ArrayList<>(unitsLength);
+        for (int i = 0; i < unitsLength; i++) {
+            U b1 = i < this.unitsLength() ? this.getUnit(i).copy() : newUnit();
+            U b2 = i < o.unitsLength() ? o.getUnit(i).copy() : newUnit();
+            append(resultUnits, func.apply(b1, b2));
+        }
+        return combine(resultUnits);
+    }
+
+
+    /**
+     * 对指定index上的unit bitmap进行运算
+     *
+     * @param index      参与运算的unit bitmap所在的index
+     * @param needExtend 当指定的index超出当前unit bitmap集合的范围时，是否对其进行扩展
+     * @param unit       参与运算的另一个unit
+     * @param func       两个unit bitmap的运算
+     * @return 运算的结果
+     */
+    private T computeWithIndex(int index, boolean needExtend, U unit, BiFunction<U, U, U> func) {
+        checkIndex(index);
+        if (this.unitsLength() < index + 1 && !needExtend) {
+            return copy();
+        }
+        List<U> list = copy0();
+        while (list.size() < index + 1) {
+            append(list, newUnit());
+        }
+        U childUnit = list.get(index);
+        list.set(index, func.apply(childUnit, unit));
+        return combine(list);
+    }
+
+
     private List<U> copy0() {
         List<U> copyUnits = new ArrayList<>(this.unitsLength());
         for (U unit : units) {
             append(copyUnits, unit.copy());
         }
-        return units;
+        return copyUnits;
     }
 
     private U getUnit(int index) {

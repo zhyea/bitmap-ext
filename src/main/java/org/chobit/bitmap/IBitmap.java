@@ -6,7 +6,6 @@ import java.io.Externalizable;
 import java.io.IOException;
 
 /**
- *
  * Bitmap接口
  *
  * @param <T> IBitmap的实现

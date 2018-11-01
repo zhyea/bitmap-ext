@@ -16,7 +16,7 @@ public class RoaringUnit implements IBitmap<RoaringUnit> {
 
     private final org.roaringbitmap.RoaringBitmap bitmap;
 
-    private long size = -1;
+    private long size;
 
 
     public RoaringUnit() {
@@ -37,7 +37,7 @@ public class RoaringUnit implements IBitmap<RoaringUnit> {
     public void add(long offset) {
         int x = castToInteger(offset);
         bitmap.add(x);
-        extend(x + 1);
+        extend(x + 1L);
     }
 
     @Override
@@ -115,7 +115,7 @@ public class RoaringUnit implements IBitmap<RoaringUnit> {
     @Override
     public long size() {
         if (this.size < 0) {
-            this.size = this.bitmap.last() + 1;
+            this.size = this.bitmap.last() + 1L;
         }
         return size;
     }
@@ -210,11 +210,11 @@ public class RoaringUnit implements IBitmap<RoaringUnit> {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder(getClass().getSimpleName());
-        builder.append(":[");
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
         IntIterator itr = bitmap.getIntIterator();
         while (itr.hasNext()) {
-            if (builder.length() > 2) {
+            if (builder.length() > 1) {
                 builder.append(",");
             }
             builder.append(itr.next());
@@ -223,6 +223,7 @@ public class RoaringUnit implements IBitmap<RoaringUnit> {
             }
         }
         builder.append("]");
+        builder.insert(0, getClass().getSimpleName());
         return builder.toString();
     }
 
