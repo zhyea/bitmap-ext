@@ -7,7 +7,7 @@ bitmap-ext是一种使bitmap支持Long值的方案
 
 扩展普通bitmap只需要提供两个类：继承接口IBitmap实现的Bitmap Unit，继承抽象类AbstractExtBitmap的具体扩展类实现。二者都比较简单，可以在几分钟内完成。
 
-在这里已经默认提供了RoaringBitmap的扩展类实现，可以用来参考一下。
+在这里已经默认提供了RoaringBitmap的扩展类实现，愿意的话可以拿来参考一下。
 
 # 其他
 
